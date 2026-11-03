@@ -1,0 +1,1023 @@
+<!DOCTYPE html>
+<html lang="th" class="h-full bg-slate-50">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบประเมินความพึงพอใจ - กลุ่มงานเทคนิคการแพทย์ โรงพยาบาลหนองใหญ่</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        medical: {
+                            50: '#f0fdfa',
+                            100: '#ccfbf1',
+                            500: '#14b8a6',
+                            600: '#0d9488',
+                            700: '#0f766e',
+                            800: '#115e59',
+                            900: '#134e4a',
+                            navy: '#0f172a'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Sarabun', 'Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Font Awesome & Google Fonts -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: 'Sarabun', sans-serif; }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(12px);
+        }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+<body class="h-full text-slate-800 antialiased selection:bg-teal-500 selection:text-white">
+
+    <!-- LOGIN SCREEN -->
+    <div id="loginPage" class="fixed inset-0 z-50 flex items-center justify-center bg-gradient-to-br from-slate-900 via-teal-950 to-teal-900 p-4">
+        <div class="w-full max-w-md rounded-2xl bg-white/95 p-8 shadow-2xl backdrop-blur-md border border-white/20 transition-all duration-300">
+            <div class="text-center mb-6">
+                <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-teal-100 text-teal-700 mb-3 shadow-inner">
+                    <i class="fa-solid fa-microscope text-3xl"></i>
+                </div>
+                <h1 class="text-2xl font-bold text-slate-800">กลุ่มงานเทคนิคการแพทย์</h1>
+                <p class="text-sm text-teal-700 font-semibold">โรงพยาบาลหนองใหญ่</p>
+                <p class="text-xs text-slate-500 mt-1">ระบบวิเคราะห์และสรุปผลความพึงพอใจการรับบริการ</p>
+            </div>
+
+            <!-- Login Form -->
+            <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-4">
+                <div id="loginError" class="hidden p-3 text-xs text-rose-700 bg-rose-50 border border-rose-200 rounded-xl text-center">
+                    <i class="fa-solid fa-circle-exclamation mr-1"></i> ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง (Nongyailab / nyh219145)
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">ชื่อผู้ใช้งาน (Username)</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+                            <i class="fa-solid fa-user"></i>
+                        </span>
+                        <input type="text" id="usernameInput" value="Nongyailab" class="w-full pl-9 pr-4 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-all" required>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">รหัสผ่าน (Password)</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+                            <i class="fa-solid fa-lock"></i>
+                        </span>
+                        <input type="password" id="passwordInput" value="nyh219145" class="w-full pl-9 pr-4 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-all" required>
+                    </div>
+                </div>
+
+                <div class="pt-2">
+                    <button type="submit" class="w-full py-3 bg-teal-600 hover:bg-teal-700 text-white font-semibold rounded-xl shadow-lg shadow-teal-600/30 transition-all duration-200 flex items-center justify-center gap-2">
+                        <span>เข้าสู่ระบบ</span>
+                        <i class="fa-solid fa-right-to-bracket text-sm"></i>
+                    </button>
+                </div>
+            </form>
+
+            <div class="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+                <span>ข้อมูลเข้าสู่ระบบ: <b class="text-teal-700">Nongyailab</b> / <b class="text-teal-700">nyh219145</b></span>
+                <button onclick="bypassLogin()" class="text-teal-600 font-semibold hover:text-teal-800 hover:underline flex items-center gap-1">
+                    <span>Demo Login</span>
+                    <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN DASHBOARD -->
+    <div id="dashboardApp" class="hidden min-h-screen flex flex-col">
+        <!-- Top Navbar -->
+        <header class="bg-gradient-to-r from-teal-900 via-teal-800 to-slate-900 text-white shadow-md sticky top-0 z-30">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-wrap justify-between items-center gap-4">
+                <div class="flex items-center gap-3">
+                    <div class="p-2 bg-white/10 rounded-xl backdrop-blur">
+                        <i class="fa-solid fa-vial-circle-check text-2xl text-teal-300"></i>
+                    </div>
+                    <div>
+                        <h1 class="font-bold text-lg leading-tight">Dashboard ความพึงพอใจการรับบริการ</h1>
+                        <p class="text-xs text-teal-200">กลุ่มงานเทคนิคการแพทย์ โรงพยาบาลหนองใหญ่</p>
+                    </div>
+                </div>
+                
+                <div class="flex items-center gap-2.5">
+                    <!-- CSV Import Modal Trigger -->
+                    <label for="csvFileInput" class="cursor-pointer bg-teal-700/80 hover:bg-teal-600 text-xs px-3.5 py-2 rounded-xl font-medium shadow transition-all flex items-center gap-1.5 border border-teal-500/30">
+                        <i class="fa-solid fa-file-csv text-teal-200"></i>
+                        <span>นำเข้า CSV</span>
+                    </label>
+                    <input type="file" id="csvFileInput" accept=".csv" class="hidden" onchange="handleFileUpload(event)">
+
+                    <button onclick="resetData()" class="bg-teal-800/60 hover:bg-teal-700 text-xs px-3 py-2 rounded-xl font-medium transition-all flex items-center gap-1.5 border border-white/10" title="รีเซ็ตเป็นข้อมูลเริ่มต้น">
+                        <i class="fa-solid fa-rotate-left"></i>
+                        <span class="hidden sm:inline">รีเซ็ต</span>
+                    </button>
+
+                    <div class="h-6 w-px bg-teal-700/50 mx-1"></div>
+
+                    <button onclick="logout()" class="bg-rose-500/20 hover:bg-rose-600 text-white text-xs px-3.5 py-2 rounded-xl font-medium transition-all flex items-center gap-1.5 border border-rose-400/30">
+                        <i class="fa-solid fa-power-off"></i>
+                        <span class="hidden sm:inline">ออกจากระบบ</span>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Body Content -->
+        <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+            
+            <!-- Filters Bar -->
+            <section class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-4 sm:p-5">
+                <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+                    <div class="flex items-center gap-2 text-slate-800 font-bold text-sm">
+                        <div class="p-1.5 bg-teal-50 text-teal-600 rounded-lg">
+                            <i class="fa-solid fa-sliders"></i>
+                        </div>
+                        <span>ตัวกรองข้อมูล (Filters)</span>
+                        <span id="activeFilterBadge" class="bg-teal-100 text-teal-800 text-xs px-2 py-0.5 rounded-full font-medium hidden">
+                            เปิดใช้งาน
+                        </span>
+                    </div>
+
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 w-full lg:w-auto">
+                        <!-- Filter Year -->
+                        <div>
+                            <label class="block text-xs font-medium text-slate-500 mb-1">ปี (Year)</label>
+                            <select id="filterYear" onchange="applyFilters()" class="w-full text-xs font-medium bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-700 focus:outline-none focus:ring-2 focus:ring-teal-500">
+                                <option value="ALL">ทั้งหมดทุกปี</option>
+                            </select>
+                        </div>
+
+                        <!-- Filter Month -->
+                        <div>
+                            <label class="block text-xs font-medium text-slate-500 mb-1">เดือน (Month)</label>
+                            <select id="filterMonth" onchange="applyFilters()" class="w-full text-xs font-medium bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-700 focus:outline-none focus:ring-2 focus:ring-teal-500">
+                                <option value="ALL">ทั้งหมดทุกเดือน</option>
+                                <option value="01">มกราคม</option>
+                                <option value="02">กุมภาพันธ์</option>
+                                <option value="03">มีนาคม</option>
+                                <option value="04">เมษายน</option>
+                                <option value="05">พฤษภาคม</option>
+                                <option value="06">มิถุนายน</option>
+                                <option value="07">กรกฎาคม</option>
+                                <option value="08">สิงหาคม</option>
+                                <option value="09">กันยายน</option>
+                                <option value="10">ตุลาคม</option>
+                                <option value="11">พฤศจิกายน</option>
+                                <option value="12">ธันวาคม</option>
+                            </select>
+                        </div>
+
+                        <!-- Filter Gender -->
+                        <div>
+                            <label class="block text-xs font-medium text-slate-500 mb-1">เพศ (Gender)</label>
+                            <select id="filterGender" onchange="applyFilters()" class="w-full text-xs font-medium bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-700 focus:outline-none focus:ring-2 focus:ring-teal-500">
+                                <option value="ALL">ทุกเพศ</option>
+                                <option value="ชาย">ชาย</option>
+                                <option value="หญิง">หญิง</option>
+                            </select>
+                        </div>
+
+                        <!-- Filter Department -->
+                        <div>
+                            <label class="block text-xs font-medium text-slate-500 mb-1">หน่วยงาน/กลุ่มงาน</label>
+                            <select id="filterDept" onchange="applyFilters()" class="w-full text-xs font-medium bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-700 focus:outline-none focus:ring-2 focus:ring-teal-500">
+                                <option value="ALL">ทุกหน่วยงาน</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Summary Stat Cards -->
+            <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <!-- Total Respondents -->
+                <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200/80 flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-medium text-slate-500">จำนวนผู้ประเมินทั้งหมด</p>
+                        <p id="kpiTotal" class="text-3xl font-extrabold text-slate-800 mt-1">0</p>
+                        <p class="text-xs text-slate-400 mt-1"><i class="fa-solid fa-users text-teal-600"></i> ฉบับ</p>
+                    </div>
+                    <div class="w-12 h-12 rounded-2xl bg-teal-50 flex items-center justify-center text-teal-600 text-xl shadow-inner">
+                        <i class="fa-solid fa-clipboard-check"></i>
+                    </div>
+                </div>
+
+                <!-- Average Score -->
+                <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200/80 flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-medium text-slate-500">คะแนนเฉลี่ยรวม</p>
+                        <div class="flex items-baseline gap-1 mt-1">
+                            <span id="kpiAvgScore" class="text-3xl font-extrabold text-teal-600">0.00</span>
+                            <span class="text-xs font-medium text-slate-400">/ 5.00</span>
+                        </div>
+                        <p id="kpiStarRating" class="text-xs text-amber-400 mt-1">
+                            <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+                        </p>
+                    </div>
+                    <div class="w-12 h-12 rounded-2xl bg-amber-50 flex items-center justify-center text-amber-500 text-xl shadow-inner">
+                        <i class="fa-solid fa-award"></i>
+                    </div>
+                </div>
+
+                <!-- High Satisfaction Rate -->
+                <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200/80 flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-medium text-slate-500">อัตราความพึงพอใจดีขึ้นไป</p>
+                        <p id="kpiHighSatRate" class="text-3xl font-extrabold text-emerald-600 mt-1">0%</p>
+                        <p class="text-xs text-emerald-600 mt-1 font-medium"><i class="fa-solid fa-circle-check"></i> คะแนนระดับ 4-5 ดาว</p>
+                    </div>
+                    <div class="w-12 h-12 rounded-2xl bg-emerald-50 flex items-center justify-center text-emerald-600 text-xl shadow-inner">
+                        <i class="fa-solid fa-thumbs-up"></i>
+                    </div>
+                </div>
+
+                <!-- Comments Count -->
+                <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200/80 flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-medium text-slate-500">ข้อเสนอแนะเพิ่มเติม</p>
+                        <p id="kpiComments" class="text-3xl font-extrabold text-indigo-600 mt-1">0</p>
+                        <p class="text-xs text-indigo-500 mt-1"><i class="fa-solid fa-comment-dots"></i> ข้อคิดเห็น</p>
+                    </div>
+                    <div class="w-12 h-12 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-600 text-xl shadow-inner">
+                        <i class="fa-solid fa-comments"></i>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Charts Grid 1 -->
+            <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Bar Chart: Aspect Average Scores -->
+                <div class="lg:col-span-2 bg-white p-5 rounded-2xl shadow-sm border border-slate-200/80">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="font-bold text-slate-800 text-sm flex items-center gap-2">
+                            <i class="fa-solid fa-chart-bar text-teal-600"></i>
+                            คะแนนเฉลี่ยจำแนกตามหัวข้อการประเมิน (ทั้ง 8 ข้อ)
+                        </h2>
+                    </div>
+                    <div class="relative h-72">
+                        <canvas id="aspectsChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Doughnut Chart: Gender Distribution -->
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200/80">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="font-bold text-slate-800 text-sm flex items-center gap-2">
+                            <i class="fa-solid fa-chart-pie text-teal-600"></i>
+                            สัดส่วนผู้รับบริการแยกตามเพศ
+                        </h2>
+                    </div>
+                    <div class="relative h-72 flex items-center justify-center">
+                        <canvas id="genderChart"></canvas>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Charts Grid 2: Trend Line Chart -->
+            <section class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200/80">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="font-bold text-slate-800 text-sm flex items-center gap-2">
+                        <i class="fa-solid fa-chart-line text-teal-600"></i>
+                        แนวโน้มคะแนนความพึงพอใจรายเดือน/รายปี
+                    </h2>
+                </div>
+                <div class="relative h-64">
+                    <canvas id="trendChart"></canvas>
+                </div>
+            </section>
+
+            <!-- Table Section: Details & Feedback -->
+            <section class="bg-white rounded-2xl shadow-sm border border-slate-200/80 overflow-hidden">
+                <div class="p-5 border-b border-slate-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                    <div>
+                        <h2 class="font-bold text-slate-800 text-sm flex items-center gap-2">
+                            <i class="fa-solid fa-table-list text-teal-600"></i>
+                            ตารางข้อมูลการประเมินความพึงพอใจ
+                        </h2>
+                        <p class="text-xs text-slate-500 mt-0.5">ค้นหา จัดเรียง และดูข้อเสนอแนะเพิ่มเติม</p>
+                    </div>
+
+                    <div class="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+                        <!-- Search Box -->
+                        <div class="relative flex-1 sm:w-64">
+                            <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-xs text-slate-400"></i>
+                            <input type="text" id="searchInput" onkeyup="handleSearch()" placeholder="ค้นหาหน่วยงาน / ข้อเสนอแนะ..." class="w-full pl-8 pr-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500">
+                        </div>
+
+                        <!-- Export CSV -->
+                        <button onclick="exportFilteredData()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs px-3 py-1.5 rounded-xl font-medium transition-all flex items-center gap-1.5 border border-slate-200">
+                            <i class="fa-solid fa-file-export text-slate-500"></i>
+                            <span>ส่งออก CSV</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Table Content -->
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs text-slate-600">
+                        <thead class="bg-slate-50 text-slate-700 font-semibold uppercase tracking-wider border-b border-slate-200">
+                            <tr>
+                                <th class="px-4 py-3 cursor-pointer hover:bg-slate-100 transition-colors" onclick="handleSort('date')">
+                                    วันที่ประเมิน <i class="fa-solid fa-sort text-slate-400 ml-1"></i>
+                                </th>
+                                <th class="px-4 py-3">หน่วยงาน/กลุ่มงาน</th>
+                                <th class="px-4 py-3">เพศ</th>
+                                <th class="px-4 py-3 text-center cursor-pointer hover:bg-slate-100 transition-colors" onclick="handleSort('avg')">
+                                    คะแนนเฉลี่ย <i class="fa-solid fa-sort text-slate-400 ml-1"></i>
+                                </th>
+                                <th class="px-4 py-3">ข้อเสนอแนะเพิ่มเติม</th>
+                            </tr>
+                        </thead>
+                        <tbody id="surveyTableBody" class="divide-y divide-slate-100">
+                            <!-- Rows generated via JS -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Table Footer / Pagination -->
+                <div class="p-4 bg-slate-50/50 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
+                    <span id="tableInfo">แสดง 0 รายการ</span>
+                    
+                    <div class="flex items-center gap-2">
+                        <button id="btnPrevPage" onclick="changePage(-1)" class="px-3 py-1 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                            <i class="fa-solid fa-chevron-left mr-1"></i> ย้อนกลับ
+                        </button>
+                        <span id="pageIndicator" class="font-medium text-slate-700">หน้า 1 / 1</span>
+                        <button id="btnNextPage" onclick="changePage(1)" class="px-3 py-1 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                            ถัดไป <i class="fa-solid fa-chevron-right ml-1"></i>
+                        </button>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer class="bg-white border-t border-slate-200 py-4 text-center text-xs text-slate-500 mt-auto">
+            <p>© กลุ่มงานเทคนิคการแพทย์ โรงพยาบาลหนองใหญ่ - ระบบ Interactive Dashboard ประเมินความพึงพอใจ</p>
+        </footer>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 bg-slate-800 text-white text-xs px-4 py-3 rounded-xl shadow-xl flex items-center gap-2">
+        <i id="toastIcon" class="fa-solid fa-circle-info text-teal-400"></i>
+        <span id="toastMsg">ข้อความแจ้งเตือน</span>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // Full Aspect Title Labels
+        const ASPECT_LABELS = {
+            q1: "1. เจ้าหน้าที่ยิ้มแย้มแจ่มใส พูดจาสุภาพ",
+            q2: "2. การแต่งกายสะอาดเรียบร้อย",
+            q3: "3. การให้บริการตามลำดับก่อน-หลัง",
+            q4: "4. ความรวดเร็ว/ระยะเวลารอคอย",
+            q5: "5. ความชำนาญในการเจาะเลือด/เก็บสิ่งส่งตรวจ",
+            q6: "6. การอธิบาย/คำแนะนำหลังเก็บสิ่งส่งตรวจ",
+            q7: "7. สถานที่สะอาด สะดวกสบาย",
+            q8: "8. ความรวดเร็วในการรอรับผลตรวจ"
+        };
+
+        // Embedded Initial Dataset from User CSV
+        const DEFAULT_DATASET = [
+            {"ประทับเวลา":"2025-11-27 13:57:56.205","วันที่ทำการประเมิน":"2025-11-27","หน่วยงาน":"กลุ่มงานเทคนิคการแพทย์ โรงพยาบาลหนองใหญ่","เพศ":"หญิง","q1":4,"q2":4,"q3":5,"q4":5,"q5":5,"q6":5,"q7":5,"q8":5,"ข้อเสนอแนะเพิ่มเติม":""},
+            {"ประทับเวลา":"2025-11-27 13:58:22.516","วันที่ทำการประเมิน":"2025-11-27","หน่วยงาน":"กลุ่มงานเทคนิคการแพทย์ โรงพยาบาลหนองใหญ่","เพศ":"ชาย","q1":4,"q2":5,"q3":5,"q4":4,"q5":5,"q6":4,"q7":4,"q8":4,"ข้อเสนอแนะเพิ่มเติม":""},
+            {"ประทับเวลา":"2025-11-27 14:05:38.664","วันที่ทำการประเมิน":"2025-11-27","หน่วยงาน":"กลุ่มงานเทคนิคการแพทย์ โรงพยาบาลหนองใหญ่","เพศ":"ชาย","q1":4,"q2":4,"q3":5,"q4":4,"q5":5,"q6":5,"q7":4,"q8":4,"ข้อเสนอแนะเพิ่มเติม":"ห้องดูคับแคบไปหน่อยครับ"},
+            {"ประทับเวลา":"2025-11-27 14:06:07.865","วันที่ทำการประเมิน":"2025-11-27","หน่วยงาน":"กลุ่มงานเทคนิคการแพทย์ โรงพยาบาลหนองใหญ่","เพศ":"หญิง","q1":5,"q2":5,"q3":4,"q4":4,"q5":4,"q6":5,"q7":5,"q8":5,"ข้อเสนอแนะเพิ่มเติม":""},
+            {"ประทับเวลา":"2025-11-27 14:07:42.619","วันที่ทำการประเมิน":"2025-11-27","หน่วยงาน":"กลุ่มงานเทคนิคการแพทย์ โรงพยาบาลหนองใหญ่","เพศ":"หญิง","q1":5,"q2":5,"q3":5,"q4":5,"q5":5,"q6":5,"q7":5,"q8":5,"ข้อเสนอแนะเพิ่มเติม":""},
+            {"ประทับเวลา":"2025-11-27 17:10:59.989","วันที่ทำการประเมิน":"2025-11-27","หน่วยงาน":"กลุ่มงานเทคนิคการแพทย์ โรงพยาบาลหนองใหญ่","เพศ":"ชาย","q1":4,"q2":5,"q3":5,"q4":5,"q5":5,"q6":5,"q7":3,"q8":5,"ข้อเสนอแนะเพิ่มเติม":""},
+            {"ประทับเวลา":"2025-11-27 17:11:37.174","วันที่ทำการประเมิน":"2025-11-27","หน่วยงาน":"กลุ่มงานเทคนิคการแพทย์ โรงพยาบาลหนองใหญ่","เพศ":"หญิง","q1":5,"q2":5,"q3":5,"q4":5,"q5":5,"q6":5,"q7":5,"q8":5,"ข้อเสนอแนะเพิ่มเติม":""},
+            {"ประทับเวลา":"2025-11-27 18:19:42.906","วันที่ทำการประเมิน":"2025-11-27","หน่วยงาน":"กลุ่มงานเทคนิคการแพทย์ โรงพยาบาลหนองใหญ่","เพศ":"หญิง","q1":5,"q2":5,"q3":5,"q4":5,"q5":5,"q6":5,"q7":5,"q8":5,"ข้อเสนอแนะเพิ่มเติม":""},
+            {"ประทับเวลา":"2025-11-28 14:53:09.309","วันที่ทำการประเมิน":"2025-11-28","หน่วยงาน":"กลุ่มงานเทคนิคการแพทย์ โรงพยาบาลหนองใหญ่","เพศ":"หญิง","q1":5,"q2":5,"q3":5,"q4":4,"q5":5,"q6":5,"q7":4,"q8":4,"ข้อเสนอแนะเพิ่มเติม":"ห้องทำงานดูอึดอัด"},
+            {"ประทับเวลา":"2025-11-28 14:53:14.076","วันที่ทำการประเมิน":"2025-11-28","หน่วยงาน":"กลุ่มงานเทคนิคการแพทย์ โรงพยาบาลหนองใหญ่","เพศ":"หญิง","q1":4,"q2":4,"q3":5,"q4":4,"q5":4,"q6":4,"q7":4,"q8":4,"ข้อเสนอแนะเพิ่มเติม":"วันนี้รอผลเลือดค่อนค้างนานเพราะคนไข้คลินิกเบาหวานเยอะ"},
+            {"ประทับเวลา":"2025-12-11 12:30:28.252","วันที่ทำการประเมิน":"2025-12-11","หน่วยงาน":"กลุ่มงานเทคนิคการแพทย์ โรงพยาบาลหนองใหญ่","เพศ":"ชาย","q1":4,"q2":4,"q3":5,"q4":4,"q5":4,"q6":4,"q7":4,"q8":4,"ข้อเสนอแนะเพิ่มเติม":""},
+            {"ประทับเวลา":"2026-03-17 15:19:50.433","วันที่ทำการประเมิน":"2026-03-17","หน่วยงาน":"กลุ่มงานเทคนิคการแพทย์ โรงพยาบาลหนองใหญ่","เพศ":"ชาย","q1":5,"q2":5,"q3":5,"q4":4,"q5":5,"q6":4,"q7":4,"q8":4,"ข้อเสนอแนะเพิ่มเติม":""},
+            {"ประทับเวลา":"2026-10-28 11:08:51.09","วันที่ทำการประเมิน":"2026-10-28","หน่วยงาน":"กลุ่มงานเทคนิคการแพทย์ โรงพยาบาลหนองใหญ่","เพศ":"ชาย","q1":4,"q2":4,"q3":4,"q4":3,"q5":4,"q6":4,"q7":3,"q8":4,"ข้อเสนอแนะเพิ่มเติม":"ห้องทำงานเล็ก"}
+        ];
+
+        let rawData = [];
+        let filteredData = [];
+        
+        // Table Pagination & Sorting State
+        let currentPage = 1;
+        const pageSize = 5;
+        let currentSort = { column: 'date', dir: 'desc' };
+
+        // Chart Instances
+        let chartAspects = null;
+        let chartGender = null;
+        let chartTrend = null;
+
+        // AUTHENTICATION
+        function handleLogin(e) {
+            e.preventDefault();
+            const u = document.getElementById('usernameInput').value.trim();
+            const p = document.getElementById('passwordInput').value.trim();
+
+            if (u === 'Nongyailab' && p === 'nyh219145') {
+                showDashboard();
+                showToast('เข้าสู่ระบบสำเร็จ', 'fa-circle-check', 'text-emerald-400');
+            } else {
+                document.getElementById('loginError').classList.remove('hidden');
+            }
+        }
+
+        function bypassLogin() {
+            showDashboard();
+            showToast('เข้าสู่ระบบสำเร็จ (Demo Login)', 'fa-circle-check', 'text-teal-400');
+        }
+
+        function showDashboard() {
+            document.getElementById('loginPage').classList.add('hidden');
+            document.getElementById('dashboardApp').classList.remove('hidden');
+            initApp();
+        }
+
+        function logout() {
+            document.getElementById('dashboardApp').classList.add('hidden');
+            document.getElementById('loginPage').classList.remove('hidden');
+            document.getElementById('loginForm').reset();
+            document.getElementById('loginError').classList.add('hidden');
+            showToast('ออกจากระบบเรียบร้อย', 'fa-right-from-bracket', 'text-slate-400');
+        }
+
+        // INITIALIZATION
+        function initApp() {
+            if (rawData.length === 0) {
+                rawData = JSON.parse(JSON.stringify(DEFAULT_DATASET));
+            }
+            populateFilterOptions();
+            applyFilters();
+        }
+
+        // POPULATE FILTER DROPDOWNS
+        function populateFilterOptions() {
+            const yearSelect = document.getElementById('filterYear');
+            const deptSelect = document.getElementById('filterDept');
+
+            const years = new Set();
+            const depts = new Set();
+
+            rawData.forEach(item => {
+                const dateStr = item['วันที่ทำการประเมิน'] || item['ประทับเวลา'] || '';
+                if (dateStr) {
+                    const year = dateStr.substring(0, 4);
+                    if (year) years.add(year);
+                }
+                if (item['หน่วยงาน']) {
+                    depts.add(item['หน่วยงาน'].trim());
+                }
+            });
+
+            // Years
+            const curYear = yearSelect.value;
+            yearSelect.innerHTML = '<option value="ALL">ทั้งหมดทุกปี</option>';
+            Array.from(years).sort().reverse().forEach(y => {
+                yearSelect.innerHTML += `<option value="${y}">${parseInt(y) + 543} (${y})</option>`;
+            });
+            if (Array.from(years).includes(curYear)) yearSelect.value = curYear;
+
+            // Departments
+            const curDept = deptSelect.value;
+            deptSelect.innerHTML = '<option value="ALL">ทุกหน่วยงาน</option>';
+            Array.from(depts).sort().forEach(d => {
+                deptSelect.innerHTML += `<option value="${d}">${d}</option>`;
+            });
+            if (Array.from(depts).includes(curDept)) deptSelect.value = curDept;
+        }
+
+        // APPLY FILTERS
+        function applyFilters() {
+            const selectedYear = document.getElementById('filterYear').value;
+            const selectedMonth = document.getElementById('filterMonth').value;
+            const selectedGender = document.getElementById('filterGender').value;
+            const selectedDept = document.getElementById('filterDept').value;
+
+            const filterBadge = document.getElementById('activeFilterBadge');
+            if (selectedYear !== 'ALL' || selectedMonth !== 'ALL' || selectedGender !== 'ALL' || selectedDept !== 'ALL') {
+                filterBadge.classList.remove('hidden');
+            } else {
+                filterBadge.classList.add('hidden');
+            }
+
+            filteredData = rawData.filter(item => {
+                const dateStr = item['วันที่ทำการประเมิน'] || item['ประทับเวลา'] || '';
+                const itemYear = dateStr ? dateStr.substring(0, 4) : '';
+                const itemMonth = dateStr ? dateStr.substring(5, 7) : '';
+                const itemGender = item['เพศ'] ? item['เพศ'].trim() : '';
+                const itemDept = item['หน่วยงาน'] ? item['หน่วยงาน'].trim() : '';
+
+                if (selectedYear !== 'ALL' && itemYear !== selectedYear) return false;
+                if (selectedMonth !== 'ALL' && itemMonth !== selectedMonth) return false;
+                if (selectedGender !== 'ALL' && itemGender !== selectedGender) return false;
+                if (selectedDept !== 'ALL' && itemDept !== selectedDept) return false;
+
+                return true;
+            });
+
+            currentPage = 1;
+            updateKPIs();
+            renderCharts();
+            renderTable();
+        }
+
+        // UPDATE KPI SUMMARY CARDS
+        function updateKPIs() {
+            const total = filteredData.length;
+            document.getElementById('kpiTotal').innerText = total.toLocaleString();
+
+            if (total === 0) {
+                document.getElementById('kpiAvgScore').innerText = "0.00";
+                document.getElementById('kpiHighSatRate').innerText = "0%";
+                document.getElementById('kpiComments').innerText = "0";
+                return;
+            }
+
+            let grandTotalScore = 0;
+            let totalQuestionCount = 0;
+            let highRatingCount = 0;
+            let commentCount = 0;
+
+            filteredData.forEach(item => {
+                let itemSum = 0;
+                let itemQCount = 0;
+                for (let i = 1; i <= 8; i++) {
+                    const val = parseFloat(item[`q${i}`]);
+                    if (!isNaN(val)) {
+                        itemSum += val;
+                        itemQCount++;
+                        if (val >= 4) highRatingCount++;
+                    }
+                }
+                grandTotalScore += itemSum;
+                totalQuestionCount += itemQCount;
+
+                if (item['ข้อเสนอแนะเพิ่มเติม'] && item['ข้อเสนอแนะเพิ่มเติม'].trim() !== '' && item['ข้อเสนอแนะเพิ่มเติม'] !== 'null') {
+                    commentCount++;
+                }
+            });
+
+            const overallAvg = totalQuestionCount > 0 ? (grandTotalScore / totalQuestionCount) : 0;
+            const highRate = totalQuestionCount > 0 ? ((highRatingCount / totalQuestionCount) * 100) : 0;
+
+            document.getElementById('kpiAvgScore').innerText = overallAvg.toFixed(2);
+            document.getElementById('kpiHighSatRate').innerText = `${highRate.toFixed(1)}%`;
+            document.getElementById('kpiComments').innerText = commentCount.toLocaleString();
+
+            // Stars Rating UI
+            const starContainer = document.getElementById('kpiStarRating');
+            let starsHtml = '';
+            const roundedRating = Math.round(overallAvg);
+            for (let i = 1; i <= 5; i++) {
+                if (i <= roundedRating) {
+                    starsHtml += '<i class="fa-solid fa-star text-amber-400"></i>';
+                } else {
+                    starsHtml += '<i class="fa-regular fa-star text-slate-300"></i>';
+                }
+            }
+            starContainer.innerHTML = starsHtml;
+        }
+
+        // RENDER CHARTS
+        function renderCharts() {
+            // 1. Aspect Bar Chart (q1-q8)
+            const aspectMeans = [];
+            const aspectShortLabels = [
+                '1. ยิ้มแย้มสุภาพ',
+                '2. การแต่งกาย',
+                '3. บริการตามลำดับ',
+                '4. ระยะเวลารอคอย',
+                '5. ความชำนาญเจาะเลือด',
+                '6. คำแนะนำหลังเก็บตรวจ',
+                '7. สถานที่สะดวก',
+                '8. ความเร็วรอผล'
+            ];
+
+            for (let i = 1; i <= 8; i++) {
+                let sum = 0;
+                let cnt = 0;
+                filteredData.forEach(item => {
+                    const val = parseFloat(item[`q${i}`]);
+                    if (!isNaN(val)) {
+                        sum += val;
+                        cnt++;
+                    }
+                });
+                aspectMeans.push(cnt > 0 ? (sum / cnt).toFixed(2) : 0);
+            }
+
+            const ctxAspects = document.getElementById('aspectsChart').getContext('2d');
+            if (chartAspects) chartAspects.destroy();
+            chartAspects = new Chart(ctxAspects, {
+                type: 'bar',
+                data: {
+                    labels: aspectShortLabels,
+                    datasets: [{
+                        label: 'คะแนนเฉลี่ย',
+                        data: aspectMeans,
+                        backgroundColor: 'rgba(13, 148, 136, 0.85)',
+                        borderColor: '#0f766e',
+                        borderWidth: 1.5,
+                        borderRadius: 8,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                title: (items) => ASPECT_LABELS[`q${items[0].dataIndex + 1}`],
+                                label: (context) => ` คะแนนเฉลี่ย: ${context.raw} / 5.00`
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            min: 0,
+                            max: 5,
+                            ticks: { stepSize: 1 }
+                        },
+                        x: {
+                            ticks: { font: { size: 10 } }
+                        }
+                    }
+                }
+            });
+
+            // 2. Gender Doughnut Chart
+            let maleCount = 0;
+            let femaleCount = 0;
+            let otherCount = 0;
+
+            filteredData.forEach(item => {
+                const g = item['เพศ'] ? item['เพศ'].trim() : '';
+                if (g === 'ชาย') maleCount++;
+                else if (g === 'หญิง') femaleCount++;
+                else otherCount++;
+            });
+
+            const ctxGender = document.getElementById('genderChart').getContext('2d');
+            if (chartGender) chartGender.destroy();
+            chartGender = new Chart(ctxGender, {
+                type: 'doughnut',
+                data: {
+                    labels: ['หญิง', 'ชาย', 'อื่นๆ/ไม่ระบุ'],
+                    datasets: [{
+                        data: [femaleCount, maleCount, otherCount],
+                        backgroundColor: [
+                            'rgba(244, 114, 182, 0.85)',
+                            'rgba(59, 130, 246, 0.85)',
+                            'rgba(148, 163, 184, 0.85)'
+                        ],
+                        borderWidth: 2,
+                        borderColor: '#ffffff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom' }
+                    }
+                }
+            });
+
+            // 3. Monthly Trend Line Chart
+            const monthMap = {};
+            filteredData.forEach(item => {
+                const dateStr = item['วันที่ทำการประเมิน'] || item['ประทับเวลา'] || '';
+                if (dateStr && dateStr.length >= 7) {
+                    const ym = dateStr.substring(0, 7); // YYYY-MM
+                    if (!monthMap[ym]) monthMap[ym] = { totalScore: 0, count: 0 };
+
+                    let itemSum = 0;
+                    let qCnt = 0;
+                    for (let i = 1; i <= 8; i++) {
+                        const val = parseFloat(item[`q${i}`]);
+                        if (!isNaN(val)) {
+                            itemSum += val;
+                            qCnt++;
+                        }
+                    }
+                    if (qCnt > 0) {
+                        monthMap[ym].totalScore += (itemSum / qCnt);
+                        monthMap[ym].count += 1;
+                    }
+                }
+            });
+
+            const sortedYm = Object.keys(monthMap).sort();
+            const trendLabels = sortedYm.map(ym => {
+                const parts = ym.split('-');
+                const y = parseInt(parts[0]) + 543;
+                return `${parts[1]}/${y}`;
+            });
+            const trendData = sortedYm.map(ym => (monthMap[ym].totalScore / monthMap[ym].count).toFixed(2));
+
+            const ctxTrend = document.getElementById('trendChart').getContext('2d');
+            if (chartTrend) chartTrend.destroy();
+            chartTrend = new Chart(ctxTrend, {
+                type: 'line',
+                data: {
+                    labels: trendLabels.length > 0 ? trendLabels : ['ไม่มีข้อมูล'],
+                    datasets: [{
+                        label: 'คะแนนเฉลี่ยรวม',
+                        data: trendData.length > 0 ? trendData : [0],
+                        borderColor: '#0d9488',
+                        backgroundColor: 'rgba(20, 184, 166, 0.1)',
+                        fill: true,
+                        tension: 0.3,
+                        pointBackgroundColor: '#0f766e',
+                        pointRadius: 5
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            min: 0,
+                            max: 5,
+                            ticks: { stepSize: 1 }
+                        }
+                    }
+                }
+            });
+        }
+
+        // RENDER DATA TABLE (WITH SEARCH, SORT, PAGINATION)
+        function renderTable() {
+            const tbody = document.getElementById('surveyTableBody');
+            const searchKeyword = document.getElementById('searchInput').value.toLowerCase().trim();
+
+            // Filter Search
+            let processedRows = filteredData.filter(item => {
+                if (!searchKeyword) return true;
+                const dept = (item['หน่วยงาน'] || '').toLowerCase();
+                const comment = (item['ข้อเสนอแนะเพิ่มเติม'] || '').toLowerCase();
+                const gender = (item['เพศ'] || '').toLowerCase();
+                return dept.includes(searchKeyword) || comment.includes(searchKeyword) || gender.includes(searchKeyword);
+            });
+
+            // Sorting
+            processedRows.sort((a, b) => {
+                let valA, valB;
+                if (currentSort.column === 'date') {
+                    valA = a['วันที่ทำการประเมิน'] || a['ประทับเวลา'] || '';
+                    valB = b['วันที่ทำการประเมิน'] || b['ประทับเวลา'] || '';
+                } else if (currentSort.column === 'avg') {
+                    valA = getAvgScore(a);
+                    valB = getAvgScore(b);
+                }
+                if (valA < valB) return currentSort.dir === 'asc' ? -1 : 1;
+                if (valA > valB) return currentSort.dir === 'asc' ? 1 : -1;
+                return 0;
+            });
+
+            // Pagination Calculations
+            const totalRows = processedRows.length;
+            const totalPages = Math.ceil(totalRows / pageSize) || 1;
+            if (currentPage > totalPages) currentPage = totalPages;
+
+            const startIndex = (currentPage - 1) * pageSize;
+            const paginatedRows = processedRows.slice(startIndex, startIndex + pageSize);
+
+            // Update Pagination UI
+            document.getElementById('tableInfo').innerText = `แสดง ${totalRows > 0 ? startIndex + 1 : 0} ถึง ${Math.min(startIndex + pageSize, totalRows)} จากทั้งหมด ${totalRows} รายการ`;
+            document.getElementById('pageIndicator').innerText = `หน้า ${currentPage} / ${totalPages}`;
+            document.getElementById('btnPrevPage').disabled = currentPage === 1;
+            document.getElementById('btnNextPage').disabled = currentPage === totalPages || totalPages === 0;
+
+            if (paginatedRows.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="px-4 py-8 text-center text-slate-400">
+                            <i class="fa-solid fa-folder-open text-2xl mb-2 block"></i>
+                            ไม่พบข้อมูลตามเงื่อนไขที่ค้นหา
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            let html = '';
+            paginatedRows.forEach(item => {
+                const avg = getAvgScore(item).toFixed(2);
+                let comment = item['ข้อเสนอแนะเพิ่มเติม'];
+                if (!comment || comment === 'null' || comment.trim() === '') comment = '-';
+                const dateDisplay = item['วันที่ทำการประเมิน'] || item['ประทับเวลา'] || '-';
+
+                html += `
+                    <tr class="hover:bg-slate-50 transition-colors">
+                        <td class="px-4 py-3 font-medium text-slate-700 whitespace-nowrap">${dateDisplay}</td>
+                        <td class="px-4 py-3">${item['หน่วยงาน'] || '-'}</td>
+                        <td class="px-4 py-3">
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                                item['เพศ'] === 'ชาย' ? 'bg-blue-50 text-blue-700' : 'bg-pink-50 text-pink-700'
+                            }">
+                                ${item['เพศ'] || '-'}
+                            </span>
+                        </td>
+                        <td class="px-4 py-3 text-center font-bold text-teal-700">${avg}</td>
+                        <td class="px-4 py-3 max-w-xs truncate" title="${comment}">${comment}</td>
+                    </tr>
+                `;
+            });
+
+            tbody.innerHTML = html;
+        }
+
+        function getAvgScore(item) {
+            let sum = 0, cnt = 0;
+            for (let i = 1; i <= 8; i++) {
+                const v = parseFloat(item[`q${i}`]);
+                if (!isNaN(v)) { sum += v; cnt++; }
+            }
+            return cnt > 0 ? (sum / cnt) : 0;
+        }
+
+        function handleSearch() {
+            currentPage = 1;
+            renderTable();
+        }
+
+        function handleSort(col) {
+            if (currentSort.column === col) {
+                currentSort.dir = currentSort.dir === 'asc' ? 'desc' : 'asc';
+            } else {
+                currentSort.column = col;
+                currentSort.dir = 'desc';
+            }
+            renderTable();
+        }
+
+        function changePage(delta) {
+            currentPage += delta;
+            renderTable();
+        }
+
+        // CSV UPLOAD
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const text = e.target.result;
+                    const parsed = parseCSV(text);
+                    if (parsed && parsed.length > 0) {
+                        rawData = parsed;
+                        populateFilterOptions();
+                        applyFilters();
+                        showToast(`นำเข้าข้อมูลเรียบร้อย ${parsed.length} รายการ`, 'fa-circle-check', 'text-emerald-400');
+                    } else {
+                        showToast('ไม่พบข้อมูลที่ถูกต้องในไฟล์ CSV', 'fa-circle-exclamation', 'text-amber-400');
+                    }
+                } catch (err) {
+                    console.error(err);
+                    showToast('เกิดข้อผิดพลาดในการอ่านไฟล์ CSV', 'fa-triangle-exclamation', 'text-rose-400');
+                }
+            };
+            reader.readAsText(file, 'UTF-8');
+            event.target.value = '';
+        }
+
+        function parseCSV(csvText) {
+            const lines = csvText.split(/\r\n|\n/);
+            if (lines.length < 2) return [];
+
+            const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
+            const result = [];
+
+            for (let i = 1; i < lines.length; i++) {
+                if (!lines[i].trim()) continue;
+                const row = lines[i].match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g) || lines[i].split(',');
+                const obj = {};
+
+                headers.forEach((h, idx) => {
+                    let val = row[idx] ? row[idx].trim().replace(/^"|"$/g, '') : '';
+                    obj[h] = val;
+                });
+
+                const normalizedObj = {
+                    "ประทับเวลา": obj['ประทับเวลา'] || obj['Timestamp'] || '',
+                    "วันที่ทำการประเมิน": obj['วันที่ทำการประเมิน'] || obj['Date'] || (obj['ประทับเวลา'] ? obj['ประทับเวลา'].substring(0,10) : ''),
+                    "หน่วยงาน": obj['หน่วยงาน'] || 'กลุ่มงานเทคนิคการแพทย์ โรงพยาบาลหนองใหญ่',
+                    "เพศ": obj['เพศ'] || obj['Gender'] || 'ไม่ระบุ',
+                    "q1": parseFloat(obj['q1'] || 5),
+                    "q2": parseFloat(obj['q2'] || 5),
+                    "q3": parseFloat(obj['q3'] || 5),
+                    "q4": parseFloat(obj['q4'] || 5),
+                    "q5": parseFloat(obj['q5'] || 5),
+                    "q6": parseFloat(obj['q6'] || 5),
+                    "q7": parseFloat(obj['q7'] || 5),
+                    "q8": parseFloat(obj['q8'] || 5),
+                    "ข้อเสนอแนะเพิ่มเติม": obj['ข้อเสนอแนะเพิ่มเติม'] || ''
+                };
+
+                result.push(normalizedObj);
+            }
+            return result;
+        }
+
+        function resetData() {
+            rawData = JSON.parse(JSON.stringify(DEFAULT_DATASET));
+            document.getElementById('filterYear').value = 'ALL';
+            document.getElementById('filterMonth').value = 'ALL';
+            document.getElementById('filterGender').value = 'ALL';
+            document.getElementById('filterDept').value = 'ALL';
+            document.getElementById('searchInput').value = '';
+            populateFilterOptions();
+            applyFilters();
+            showToast('รีเซ็ตข้อมูลเป็นชุดเริ่มต้นเรียบร้อย', 'fa-rotate-left', 'text-teal-400');
+        }
+
+        // EXPORT DATA
+        function exportFilteredData() {
+            if (filteredData.length === 0) {
+                showToast('ไม่มีข้อมูลสำหรับส่งออก', 'fa-triangle-exclamation', 'text-amber-400');
+                return;
+            }
+
+            let csvContent = "\uFEFF";
+            csvContent += "ประทับเวลา,วันที่ทำการประเมิน,หน่วยงาน,เพศ,q1,q2,q3,q4,q5,q6,q7,q8,ข้อเสนอแนะเพิ่มเติม\n";
+
+            filteredData.forEach(row => {
+                const line = [
+                    `"${row['ประทับเวลา'] || ''}"`,
+                    `"${row['วันที่ทำการประเมิน'] || ''}"`,
+                    `"${row['หน่วยงาน'] || ''}"`,
+                    `"${row['เพศ'] || ''}"`,
+                    row.q1, row.q2, row.q3, row.q4, row.q5, row.q6, row.q7, row.q8,
+                    `"${(row['ข้อเสนอแนะเพิ่มเติม'] || '').replace(/"/g, '""')}"`
+                ].join(",");
+                csvContent += line + "\n";
+            });
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.setAttribute("href", url);
+            link.setAttribute("download", `nongyai_lab_satisfaction_${new Date().toISOString().slice(0,10)}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            showToast('ส่งออกไฟล์ CSV สำเร็จ', 'fa-file-circle-check', 'text-emerald-400');
+        }
+
+        // TOAST NOTIFICATION
+        function showToast(message, iconClass = 'fa-circle-info', iconColor = 'text-teal-400') {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toastMsg');
+            const toastIcon = document.getElementById('toastIcon');
+
+            toastMsg.innerText = message;
+            toastIcon.className = `fa-solid ${iconClass} ${iconColor}`;
+
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+
+            setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
